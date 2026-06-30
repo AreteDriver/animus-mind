@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animus.local/schemas/object_version.schema.json",
+  "title": "Object Version",
+  "description": "A versioned snapshot of an object in the canonical registry. Represents a single point-in-time state of an object with bitemporal validity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "object_id",
+    "object_version",
+    "schema_id",
+    "schema_version",
+    "owner_id",
+    "workspace_id",
+    "subject_domain",
+    "artifact_type",
+    "cognitive_role",
+    "workflow_status",
+    "epistemic_status",
+    "lifecycle_status",
+    "storage_tier",
+    "presentation",
+    "security_class",
+    "valid_from",
+    "recorded_at",
+    "created_by",
+    "content_sha256",
+    "payload"
+  ],
+  "properties": {
+    "object_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,127}$"
+    },
+    "object_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "schema_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "owner_id": {
+      "type": "string",
+      "pattern": "^owner-[a-z0-9_-]+$"
+    },
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^ws-[a-z0-9_-]+$"
+    },
+    "subject_domain": {
+      "enum": [
+        "self",
+        "world",
+        "project",
+        "operations"
+      ]
+    },
+    "artifact_type": {
+      "enum": [
+        "source",
+        "observation",
+        "claim",
+        "entity",
+        "event",
+        "signal",
+        "pattern",
+        "hypothesis",
+        "assessment",
+        "forecast",
+        "decision",
+        "action",
+        "outcome",
+        "lesson",
+        "memory_candidate",
+        "approval_receipt",
+        "action_receipt",
+        "context_envelope",
+        "trace"
+      ]
+    },
+    "cognitive_role": {
+      "enum": [
+        "memory",
+        "knowledge",
+        "intelligence",
+        "none"
+      ]
+    },
+    "workflow_status": {
+      "enum": [
+        "candidate",
+        "approved",
+        "rejected",
+        "not_applicable"
+      ]
+    },
+    "epistemic_status": {
+      "enum": [
+        "unverified",
+        "supported",
+        "disputed",
+        "refuted",
+        "not_applicable"
+      ]
+    },
+    "lifecycle_status": {
+      "enum": [
+        "active",
+        "superseded",
+        "deprecated",
+        "archived",
+        "deleted"
+      ]
+    },
+    "storage_tier": {
+      "enum": [
+        "hot",
+        "warm",
+        "cold"
+      ]
+    },
+    "presentation": {
+      "enum": [
+        "canonical",
+        "generated_view"
+      ]
+    },
+    "security_class": {
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "valid_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "valid_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "superseded_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 3
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}

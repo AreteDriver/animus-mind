@@ -162,7 +162,7 @@ animus-mind/
 
 | Component | Status | Notes |
 |---|---|---|
-| Contracts (22 schemas) | 🚧 Ported from v2.3; 2 missing | Need `ledger_event`, `agent_contract` |
+| Contracts (26 schemas) | ✅ Complete | 21 ported from v2.3 + 5 Mind-class (`ledger_event`, `object_version`, `outbox_entry`, `capability_grant`, `policy_decision`) |
 | PostgreSQL object core | 🚧 Ported; needs bitemporal cols | `DurableMemoryStore` from v2.3 |
 | API shell | 🚧 Ported from Bootstrap | Needs policy middleware upgrade |
 | Eval harness | 🚧 Ported from Forge | Needs adversarial suites |
