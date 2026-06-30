@@ -34,7 +34,7 @@ from fastapi import HTTPException, Request
 logger = logging.getLogger(__name__)
 
 try:
-    from animus_contracts import ValidationError, validate
+    from contracts.validator import ValidationError, validate
 
     _HAS_CONTRACTS = True
 except ImportError:  # pragma: no cover
