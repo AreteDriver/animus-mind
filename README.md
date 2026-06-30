@@ -163,11 +163,11 @@ animus-mind/
 | Component | Status | Notes |
 |---|---|---|
 | Contracts (26 schemas) | ✅ Complete | 21 ported from v2.3 + 5 Mind-class (`ledger_event`, `object_version`, `outbox_entry`, `capability_grant`, `policy_decision`) |
-| PostgreSQL object core | 🚧 Ported; needs bitemporal cols | `DurableMemoryStore` from v2.3 |
+| PostgreSQL object core | ✅ Schema-validated, bitemporal, adversarial tests green | `DurableObjectStore` with ledger + outbox |
 | API shell | 🚧 Ported from Bootstrap | Needs policy middleware upgrade |
-| Eval harness | 🚧 Ported from Forge | Needs adversarial suites |
+| Eval harness | ✅ Ported; schema tests + adversarial suite green | 72 tests passing |
 | PWA frontend | 🚧 Ported | Needs event streaming |
-| Ledger + outbox | 🔴 Not started | Phase 2 of roadmap |
+| Ledger + outbox | ✅ Schema-validated writes; needs workers | Phase 2 partial |
 | Identity policy | 🔴 Not started | Phase 3 |
 | Source ingestion | 🔴 Not started | Phase 4 |
 | Memory admission | 🔴 Not started | Phase 5 |
