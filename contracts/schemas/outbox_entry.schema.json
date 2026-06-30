@@ -15,7 +15,7 @@
   "properties": {
     "entry_id": {
       "type": "string",
-      "pattern": "^ent-[a-z0-9_-]+$"
+      "pattern": "^[a-z]+-[a-z0-9_-]+$"
     },
     "topic": {
       "type": "string",

@@ -427,11 +427,35 @@ class DurableObjectStore:
     ) -> str:
         """Enqueue an outbox entry for async processing. Returns entry_id."""
         entry_id = _generate_id("obx")
+        now = _now_utc()
+        headers_dict = headers or {}
+
+        entry_dict = {
+            "entry_id": entry_id,
+            "topic": topic,
+            "payload": payload,
+            "headers": headers_dict,
+            "created_at": now.isoformat(),
+            "claimed_at": None,
+            "claimed_by": None,
+            "retry_count": 0,
+            "processed_at": None,
+            "error_message": None,
+        }
+
+        if _HAS_CONTRACTS:
+            try:
+                _validate_schema(entry_dict, "outbox_entry")
+            except _SchemaValidationError as exc:
+                raise LedgerValidationError(
+                    f"Outbox entry failed schema validation: {exc.errors}"
+                ) from exc
+
         row = _OutboxEntryRow(
             entry_id=entry_id,
             topic=topic,
             payload=payload,
-            headers=headers or {},
+            headers=headers_dict,
         )
         session.add(row)
         session.flush()

@@ -227,3 +227,50 @@ class TestOutboxIdempotency:
         claimed_ids_2 = {e["entry_id"] for e in entries_2}
         for e in entries:
             assert e["entry_id"] not in claimed_ids_2
+
+
+class TestSchemaValidationAtCore:
+    """Schema validation must block invalid data before it reaches the store."""
+
+    def test_store_rejects_invalid_object_id(self, store):
+        """An object_id that violates the schema pattern must be rejected."""
+        from modules.object_core.durable_store import LedgerValidationError
+
+        record = ObjectRecord(
+            object_id="123-invalid-start",
+            schema_id="test-schema",
+            payload={"data": "x"},
+        )
+        with pytest.raises(LedgerValidationError) as exc_info:
+            store.store(record)
+        assert "does not match" in str(exc_info.value)
+
+    def test_store_rejects_invalid_artifact_type(self, store):
+        """An artifact_type not in the schema enum must be rejected."""
+        from modules.object_core.durable_store import LedgerValidationError
+
+        record = ObjectRecord(
+            object_id=f"obj-{uuid.uuid4().hex[:8]}",
+            schema_id="test-schema",
+            payload={"data": "x"},
+            artifact_type="ghost",
+        )
+        with pytest.raises(LedgerValidationError) as exc_info:
+            store.store(record)
+        assert "is not one of" in str(exc_info.value)
+
+    def test_update_rejects_invalid_schema_version(self, store):
+        """A schema_version that doesn't match semver must be rejected on update."""
+        from modules.object_core.durable_store import LedgerValidationError
+
+        record = ObjectRecord(
+            object_id=f"obj-{uuid.uuid4().hex[:8]}",
+            schema_id="test-schema",
+            payload={"data": "v1"},
+        )
+        store.store(record)
+
+        record.schema_version = "1.0"  # Invalid — missing patch
+        with pytest.raises(LedgerValidationError) as exc_info:
+            store.update(record)
+        assert "does not match" in str(exc_info.value)
