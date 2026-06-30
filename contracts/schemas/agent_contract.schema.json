@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://animus.local/schemas/agent_contract.schema.json",
+  "title": "Agent Contract",
+  "description": "Versioned agent execution contract with objective, budgets, and constraints.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "agent_type",
+    "objective",
+    "completion_criteria",
+    "allowed_inputs",
+    "allowed_tools",
+    "classification_ceiling",
+    "budgets",
+    "output_schema",
+    "escalation_policy",
+    "trace_parent"
+  ],
+  "properties": {
+    "contract_id": {
+      "type": "string",
+      "pattern": "^agt-[a-z0-9_-]+$"
+    },
+    "agent_type": {
+      "enum": [
+        "researcher",
+        "critic",
+        "synthesizer",
+        "operator",
+        "evaluator"
+      ]
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 10
+    },
+    "completion_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "allowed_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "classification_ceiling": {
+      "enum": [
+        "public",
+        "internal",
+        "confidential",
+        "restricted"
+      ]
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_tokens",
+        "max_time_seconds",
+        "max_cost_usd",
+        "max_recursion_depth",
+        "max_tool_calls"
+      ],
+      "properties": {
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_time_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_cost_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_recursion_depth": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "output_schema": {
+      "type": "string"
+    },
+    "escalation_policy": {
+      "type": "object",
+      "properties": {
+        "on_budget_exceeded": {
+          "enum": [
+            "abort",
+            "request_approval",
+            "degrade"
+          ]
+        },
+        "on_schema_violation": {
+          "enum": [
+            "abort",
+            "retry",
+            "request_approval"
+          ]
+        }
+      }
+    },
+    "cancellation_token": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "trace_parent": {
+      "type": "string"
+    }
+  }
+}

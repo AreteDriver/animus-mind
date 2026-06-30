@@ -1,0 +1,21 @@
+# Animus-Mind Environment Configuration
+# Copy to .env and fill in values.
+
+# PostgreSQL — the durable authority
+ANIMUS_DATABASE_URL=postgresql://localhost:5432/animus_mind
+
+# Redis — for Celery workers and caching
+REDIS_URL=redis://localhost:6379/0
+
+# Local AI inference (Ollama)
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Anthropic (optional — for remote tier)
+ANTHROPIC_API_KEY=your_key_here
+
+# OpenAI (optional — for OpenRouter gateway)
+OPENAI_API_KEY=your_key_here
+
+# Debug
+DEBUG=false
+LOG_LEVEL=INFO
