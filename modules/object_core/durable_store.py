@@ -23,6 +23,14 @@ from enum import Enum
 from typing import Any
 
 try:
+    from contracts.validator import ValidationError as _SchemaValidationError
+    from contracts.validator import validate as _validate_schema
+
+    _HAS_CONTRACTS = True
+except ImportError:  # pragma: no cover
+    _HAS_CONTRACTS = False
+
+try:
     from sqlalchemy import (
         Column,
         DateTime,
@@ -95,6 +103,14 @@ class EventType(str, Enum):
     RESTORED = "restored"
     EXPORTED = "exported"
     IMPORTED = "imported"
+
+
+class LedgerValidationError(Exception):
+    """Raised when a ledger event fails schema validation.
+
+    This is a **fail-closed** error: the event is NOT written to the
+    ledger, and the calling transaction should be rolled back.
+    """
 
 
 # ------------------------------------------------------------------
@@ -288,6 +304,54 @@ class DurableObjectStore:
         }
         return _sha256(payload)
 
+    def _validate_object_version(
+        self,
+        record: ObjectRecord,
+        integrity_hash: str,
+        valid_from: datetime | None = None,
+        recorded_at: datetime | None = None,
+    ) -> None:
+        """Validate an object record against ``object_version.schema.json``.
+
+        Raises ``LedgerValidationError`` on mismatch (fail-closed).
+        """
+        if not _HAS_CONTRACTS:
+            return
+
+        now_iso = (recorded_at or _now_utc()).isoformat()
+        valid_from_iso = valid_from.isoformat() if valid_from else None
+
+        version_dict = {
+            "object_id": record.object_id,
+            "object_version": record.version,
+            "schema_id": record.schema_id,
+            "schema_version": record.schema_version,
+            "owner_id": record.owner_id,
+            "workspace_id": record.workspace_id,
+            "subject_domain": record.subject_domain,
+            "artifact_type": record.artifact_type,
+            "cognitive_role": record.cognitive_role,
+            "workflow_status": record.workflow_status,
+            "epistemic_status": record.epistemic_status,
+            "lifecycle_status": record.lifecycle_status,
+            "storage_tier": record.storage_tier,
+            "presentation": record.presentation,
+            "security_class": record.security_class,
+            "valid_from": valid_from_iso,
+            "recorded_at": now_iso,
+            "created_by": record.created_by,
+            "content_sha256": integrity_hash,
+            "payload": record.payload,
+            "tags": record.tags or [],
+        }
+
+        try:
+            _validate_schema(version_dict, "object_version")
+        except _SchemaValidationError as exc:
+            raise LedgerValidationError(
+                f"Object version failed schema validation: {exc.errors}"
+            ) from exc
+
     def _write_ledger_event(
         self,
         session: Session,
@@ -295,7 +359,12 @@ class DurableObjectStore:
         record: ObjectRecord,
         parent_event_id: str | None = None,
     ) -> str:
-        """Append an immutable event to the ledger. Returns event_id."""
+        """Append an immutable event to the ledger. Returns event_id.
+
+        The event is validated against ``ledger_event.schema.json`` before
+        persistence. If validation fails, ``LedgerValidationError`` is raised
+        and the event is **not** written.
+        """
         event_id = _generate_id("evt")
         payload = {
             "artifact_type": record.artifact_type,
@@ -310,6 +379,28 @@ class DurableObjectStore:
             "version": record.version,
             "payload": payload,
         })
+
+        # Build canonical event dict for schema validation
+        event_dict = {
+            "event_id": event_id,
+            "event_type": event_type,
+            "object_id": record.object_id,
+            "object_version": record.version,
+            "principal": record.created_by,
+            "workspace_id": record.workspace_id,
+            "payload": payload,
+            "integrity_hash": integrity,
+            "tx_time": now.isoformat(),
+            "parent_event_id": parent_event_id,
+        }
+
+        if _HAS_CONTRACTS:
+            try:
+                _validate_schema(event_dict, "ledger_event")
+            except _SchemaValidationError as exc:
+                raise LedgerValidationError(
+                    f"Ledger event failed schema validation: {exc.errors}"
+                ) from exc
 
         row = _LedgerEventRow(
             event_id=event_id,
@@ -360,6 +451,9 @@ class DurableObjectStore:
         """
         record.version = 1
         integrity = self._compute_integrity_hash(record)
+        now = _now_utc()
+
+        self._validate_object_version(record, integrity, valid_from=now, recorded_at=now)
 
         with self._session_factory() as session:
             row = _ObjectRegistryRow(
@@ -378,7 +472,7 @@ class DurableObjectStore:
                 storage_tier=record.storage_tier,
                 presentation=record.presentation,
                 security_class=record.security_class,
-                valid_from=_now_utc(),
+                valid_from=now,
                 created_by=record.created_by,
                 trace_id=record.trace_id,
                 content_sha256=integrity,
@@ -432,6 +526,8 @@ class DurableObjectStore:
             # Increment version
             record.version = current.object_version + 1
             integrity = self._compute_integrity_hash(record)
+
+            self._validate_object_version(record, integrity, valid_from=now, recorded_at=now)
 
             new_row = _ObjectRegistryRow(
                 object_id=record.object_id,

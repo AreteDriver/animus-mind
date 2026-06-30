@@ -76,11 +76,13 @@
         "action",
         "outcome",
         "lesson",
+        "memory",
         "memory_candidate",
         "approval_receipt",
         "action_receipt",
         "context_envelope",
-        "trace"
+        "trace",
+        "agent_contract"
       ]
     },
     "cognitive_role": {
@@ -96,6 +98,7 @@
         "candidate",
         "approved",
         "rejected",
+        "active",
         "not_applicable"
       ]
     },

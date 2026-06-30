@@ -104,8 +104,8 @@ class TestDeletionInvariant:
 
     def test_deleted_object_in_list_current(self, store):
         """list_current must not include deleted objects."""
-        r1 = ObjectRecord(object_id=f"obj-{uuid.uuid4().hex[:8]}", schema_id="s", payload={})
-        r2 = ObjectRecord(object_id=f"obj-{uuid.uuid4().hex[:8]}", schema_id="s", payload={})
+        r1 = ObjectRecord(object_id=f"obj-{uuid.uuid4().hex[:8]}", schema_id="test-schema", payload={})
+        r2 = ObjectRecord(object_id=f"obj-{uuid.uuid4().hex[:8]}", schema_id="test-schema", payload={})
         store.store(r1)
         store.store(r2)
         store.delete(r1.object_id)
@@ -175,13 +175,13 @@ class TestWorkspaceIsolation:
         """list_current must filter by artifact_type when requested."""
         r1 = ObjectRecord(
             object_id=f"obj-{uuid.uuid4().hex[:8]}",
-            schema_id="s",
+            schema_id="test-schema",
             payload={},
             artifact_type=ObjectType.MEMORY.value,
         )
         r2 = ObjectRecord(
             object_id=f"obj-{uuid.uuid4().hex[:8]}",
-            schema_id="s",
+            schema_id="test-schema",
             payload={},
             artifact_type=ObjectType.CLAIM.value,
         )
